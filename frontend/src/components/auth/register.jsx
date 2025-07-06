@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './login.css';  // Reusing the same CSS file for consistent design
 
 const Register = () => {
   const navigate = useNavigate();
@@ -22,15 +23,63 @@ const Register = () => {
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="username" placeholder="Username" value={formData.username} onChange={handleChange} required />
-        <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
-        <button type="submit">Register</button>
-      </form>
+    <div className="login-container">
+      <div className="login-card">
+        {/* Left Section */}
+        <div className="login-left">
+          <h2>Join Us Today!</h2>
+          <p>Create your account and start managing your projects easily.</p>
+          <img src="/b2b.png" alt="Kanban Illustration" />
+        </div>
+
+        {/* Right Section (Register Form) */}
+        <form onSubmit={handleSubmit} className="login-form">
+          <h1>Register</h1>
+          {error && <p className="error">{error}</p>}
+
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              name="username"
+              placeholder="Enter Username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <button type="submit" className="login-btn">Register</button>
+
+          <p className="register-link">
+            Already have an account? <a href="/login">Login</a>
+          </p>
+        </form>
+      </div>
     </div>
   );
 };

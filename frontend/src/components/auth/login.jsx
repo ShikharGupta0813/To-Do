@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './login.css';  // Import CSS file
 
 const Login = () => {
   const navigate = useNavigate();
@@ -24,14 +25,51 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
-        <button type="submit">Login</button>
-      </form>
+    <div className="login-container">
+      <div className="login-card">
+        {/* Left Section */}
+        <div className="login-left">
+          <h2>Welcome Back!</h2>
+          <p>Access your tasks, manage projects, and stay organized.</p>
+          <img src="/b2b.png" alt="Kanban Illustration" />
+        </div>
+
+        {/* Right Section (Form) */}
+        <form onSubmit={handleSubmit} className="login-form">
+          <h1>Login</h1>
+          {error && <p className="error">{error}</p>}
+
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <button type="submit" className="login-btn">Login</button>
+
+          <p className="register-link">
+            Don’t have an account? <a href="/register">Register</a>
+          </p>
+        </form>
+      </div>
     </div>
   );
 };
