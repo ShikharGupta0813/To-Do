@@ -18,7 +18,7 @@ const Login = () => {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, formData);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate('/');
+      navigate('/kanban');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     }

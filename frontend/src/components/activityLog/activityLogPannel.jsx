@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import socket from '../../sockets/socket';
+import '../kanboard/kanbanboard.css';  // Reuse KanbanBoard.css for consistent styling
 
 const ActivityLogPanel = () => {
   const [logs, setLogs] = useState([]);
@@ -20,7 +21,6 @@ const ActivityLogPanel = () => {
   useEffect(() => {
     fetchLogs();
 
-    // Listen for real-time log updates
     socket.on('update-logs', (latestLogs) => {
       setLogs(latestLogs);
     });
@@ -31,15 +31,17 @@ const ActivityLogPanel = () => {
   }, []);
 
   return (
-    <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
+    <div className="activity-log-panel">
       <h3>Activity Logs (Last 20 Actions)</h3>
       <ul>
-        {logs.map((log) => (
-          <li key={log._id}>
-            {log.user?.username || 'Unknown User'}: {log.action} at {new Date(log.timestamp).toLocaleString()}
-          </li>
-        ))}
-      </ul>
+  {logs.slice(0, 20).map((log) => (
+    <li key={log._id} className="log-item">
+      {log.user?.username || 'Unknown User'}: {log.action} at {new Date(log.timestamp).toLocaleString()}
+    </li>
+  ))}
+</ul>
+
+      
     </div>
   );
 };

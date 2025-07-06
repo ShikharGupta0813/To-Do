@@ -7,7 +7,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<KanbanBoard/>} />
+        <Route path="/" element= {<h1 hello this is kanban board/>} />
+        <Route path="/kanban" element={<KanbanBoard/>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>

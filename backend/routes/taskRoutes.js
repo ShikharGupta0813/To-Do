@@ -66,6 +66,7 @@ router.post('/smart-assign/:taskId', async (req, res) => {
     const users = await User.find({});
     let minTasks = Infinity;
     let targetUser = null;
+
     for (let user of users) {
       const count = await Task.countDocuments({
         assignedUser: user._id,
@@ -76,15 +77,17 @@ router.post('/smart-assign/:taskId', async (req, res) => {
         targetUser = user;
       }
     }
+
     const task = await Task.findByIdAndUpdate(
       req.params.taskId,
       { assignedUser: targetUser._id },
       { new: true }
     );
-    res.json(task);
-  } catch (err) {
+
+   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;
