@@ -200,7 +200,7 @@ const handleDrop = (e, status) => {
                     <h4>{task.title}</h4>
                     <p>{task.description}</p>
                     <section className="status-badge">{task.status}</section>
-                    <div className="status-badge">Priority: {task.priority}</div>
+                    <section className="priority-badge">Priority: {task.priority}</section>
 
                     <div className="task-actions">
                       <button onClick={() => handleSmartAssign(task._id)}>
