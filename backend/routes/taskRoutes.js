@@ -1,66 +1,93 @@
-const express = require('express');
-const router = express.Router();
-const Task = require('../models/Task');
-const User = require('../models/User');
-const { protect } = require('../middleware/authMiddleware');
+module.exports = (io) => {
+  const express = require('express');
+  const router = express.Router();
+ const Task = require('../models/Task');
+ const User = require('../models/User');
+ const ActionLog = require('../models/ActionLog');
+ const { protect } = require('../middleware/authMiddleware');
 
-// Apply to all task routes
-router.use(protect);
+  // Protect all task routes
+  router.use(protect);
 
-
-// ✅ GET: Get all tasks (for Kanban Board)
-router.get('/', async (req, res) => {
-  try {
-    const tasks = await Task.find().populate('assignedUser', 'username');
-    res.json(tasks);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ✅ POST: Create a new task
-router.post('/', async (req, res) => {
-  try {
-    const newTask = await Task.create(req.body);
-    res.json(newTask);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ✅ PUT: Update a task (title, description, status, priority, assignedUser)
-router.put('/:id', async (req, res) => {
-  try {
-    const task = await Task.findById(req.params.id);
-    if (!task) return res.status(404).json({ message: 'Task not found' });
-
-    // Conflict Check (compare versions sent by frontend)
-    if (req.body.version !== undefined && task.version !== req.body.version) {
-      return res.status(409).json({ message: 'Conflict detected', currentTask: task });
+  // ✅ GET: Get all tasks
+  router.get('/', async (req, res) => {
+    try {
+      const tasks = await Task.find().populate('assignedUser', 'username');
+      res.json(tasks);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
+  });
 
-    const updatedTask = await Task.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    res.json(updatedTask);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+  // ✅ POST: Create a new task
+  router.post('/', async (req, res) => {
+    try {
+      const newTask = await Task.create(req.body);
 
-// ✅ DELETE: Delete a task
-router.delete('/:id', async (req, res) => {
-  try {
-    await Task.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Task deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+      await ActionLog.create({
+        user: req.user.id,
+        action: `Created new task "${newTask.title}"`,
+        timestamp: new Date(),
+      });
 
-// ✅ POST: Smart Assign — Assign task to user with fewest active tasks
+      const latestLogs = await ActionLog.find().sort({ timestamp: -1 }).limit(20).populate('user', 'username');
+      io.emit('update-logs', latestLogs);
+
+      res.json(newTask);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ✅ PUT: Update a task
+  router.put('/:id', async (req, res) => {
+    try {
+      const task = await Task.findById(req.params.id);
+      if (!task) return res.status(404).json({ message: 'Task not found' });
+
+      if (req.body.version !== undefined && task.version !== req.body.version) {
+        return res.status(409).json({ message: 'Conflict detected', currentTask: task });
+      }
+
+      const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+      await ActionLog.create({
+        user: req.user.id,
+        action: `Updated task "${task.title}" from "${task.status}"`,
+        timestamp: new Date(),
+      });
+
+      const latestLogs = await ActionLog.find().sort({ timestamp: -1 }).limit(20).populate('user', 'username');
+      io.emit('update-logs', latestLogs);
+
+      res.json(updatedTask);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ✅ DELETE: Delete a task
+  router.delete('/:id', async (req, res) => {
+    try {
+      const task = await Task.findById(req.params.id);
+      await Task.findByIdAndDelete(req.params.id);
+
+      await ActionLog.create({
+        user: req.user.id,
+        action: `Deleted task "${task.title}"`,
+        timestamp: new Date(),
+      });
+
+      const latestLogs = await ActionLog.find().sort({ timestamp: -1 }).limit(20).populate('user', 'username');
+      io.emit('update-logs', latestLogs);
+
+      res.json({ message: 'Task deleted successfully' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ✅ POST: Smart Assign — Assign task to user with fewest active tasks
 router.post('/smart-assign/:taskId', async (req, res) => {
   try {
     const users = await User.find({});
@@ -70,7 +97,7 @@ router.post('/smart-assign/:taskId', async (req, res) => {
     for (let user of users) {
       const count = await Task.countDocuments({
         assignedUser: user._id,
-        status: { $ne: 'Done' }
+        status: { $ne: 'Done' },
       });
       if (count < minTasks) {
         minTasks = count;
@@ -84,10 +111,27 @@ router.post('/smart-assign/:taskId', async (req, res) => {
       { new: true }
     );
 
-   } catch (err) {
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    await ActionLog.create({
+      user: req.user.id,
+      action: `Smart Assign: Assigned task "${task.title}" to ${targetUser.username}`,
+      timestamp: new Date(),
+    });
+
+    const latestLogs = await ActionLog.find()
+      .sort({ timestamp: -1 })
+      .limit(20)
+      .populate('user', 'username');
+
+    io.emit('update-logs', latestLogs);
+
+    res.json(task);
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
-
-module.exports = router;
+  return router;
+};

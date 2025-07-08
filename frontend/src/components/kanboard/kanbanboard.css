@@ -1,55 +1,53 @@
 /* Kanban Page Styles */
 .kanban-page {
-    padding: 40px 20px;
-    background: linear-gradient(to bottom right, #f0f4f8, #e0e7ff);
-    min-height: 60vh;
-    
-    font-family: Arial, sans-serif;
-  }
+  padding: 20px;
+  max-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
   
-  .kanban-title {
-    text-align: center;
-    font-size: 36px;
-    color: #1e293b;
-    margin-bottom: 30px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .add-task-btn {
-    display: block;
-    margin: 0 auto 30px auto;
-    padding: 10px 20px;
-    background-color: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
-  
-  .add-task-btn:hover {
-    background-color: #1e40af;
-  }
-  
-  /* Kanban Board Layout */
-  .kanban-board {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 30px;
-  }
-  
-  .kanban-column {
-    flex: 1;
-    min-width: 250px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, border 0.3s ease;
-  }
+ .kanban-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.add-task-btn {
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-weight: bold;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.kanban-board {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 400px; /* ✨ Limit height */
+  padding-bottom: 10px;
+}
+
+.kanban-column {
+  flex: 1;
+  min-width: 280px;
+  background-color: #f9fafb;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  max-height: 400px; /* 👈 Set max height */
+}
+.kanban-column .tasks-container {
+  overflow-y: auto;
+  flex-grow: 1; /* Take available space */
+}
   
   .kanban-column.drag-over {
     background-color: #e0f2fe;
@@ -82,16 +80,14 @@
   }
   
   /* Task Cards */
-  .task-card {
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    cursor: grab;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
+ 
+.task-card {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
   
   .task-card:hover {
     transform: translateY(-4px);
@@ -120,16 +116,10 @@
   }
   
   .task-actions button {
-    padding: 6px 10px;
-    margin-right: 5px;
-    background-color: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.3s ease;
-  }
+  margin-right: 8px;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
   
   .task-actions button:hover {
     background-color: #1e40af;
@@ -137,11 +127,14 @@
   
   /* Activity Log Panel */
   .activity-log-panel {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
+  margin-top: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 250px; /* ✨ Fixed height */
+  overflow-y: auto;
+}
   
   .activity-log-panel h3 {
     color: #1e293b;
@@ -149,18 +142,36 @@
     font-size: 20px;
   }
   
-  .activity-log-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
   
-  .log-item {
-    padding: 10px 0;
-    border-bottom: 1px solid #e2e8f0;
-    color: #475569;
-    transition: background-color 0.2s ease;
-  }
+.activity-log-panel ul {
+  max-height: 200px;
+  /* overflow-y: auto; */
+  list-style: none;
+  padding-left: 0;
+}
+  .activity-log-panel ul {
+  max-height: 250px; /* You can adjust height */
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.activity-log-panel ul::-webkit-scrollbar {
+  width: 6px;
+}
+
+.activity-log-panel ul::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+  
+  
+.log-item {
+  border-bottom: 1px solid #eee;
+  padding: 6px 0;
+  font-size: 0.9rem;
+  color: #444;
+}
   
   .log-item:last-child {
     border-bottom: none;

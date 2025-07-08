@@ -11,9 +11,8 @@ const KanbanBoard = () => {
   const [dragOverStatus, setDragOverStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const token = localStorage.getItem('token');
   const [logs, setLogs] = useState([]);
-
+  const token = localStorage.getItem('token');
 
   const fetchTasks = async () => {
     try {
@@ -26,36 +25,6 @@ const KanbanBoard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchTasks();
-
-  }, []);
-
-  const updateTaskStatus = async (taskId, newStatus) => {
-    const task = tasks.find((t) => t._id === taskId);
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/tasks/${taskId}`,
-        { status: newStatus, version: task.version },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      socket.emit('task-updated', {
-        action: `Updated task status to ${newStatus}`,
-        userId: JSON.parse(localStorage.getItem('user')).id,
-      });
-      fetchTasks();
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setConflict({
-          clientTask: { ...task, status: newStatus },
-          serverTask: err.response.data.currentTask,
-          taskId,
-        });
-      } else {
-        console.error(err);
-      }
-    }
-  };
   const fetchLogs = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/actions`, {
@@ -66,19 +35,53 @@ const KanbanBoard = () => {
       console.error(err);
     }
   };
-  
+
+  useEffect(() => {
+    fetchTasks();
+    fetchLogs();
+
+    // Listen to real-time logs
+    socket.on('update-logs', (latestLogs) => {
+      setLogs(latestLogs);
+    });
+
+    return () => {
+      socket.off('update-logs');
+    };
+  }, []);
+
   const handleSmartAssign = async (taskId) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/tasks/smart-assign/${taskId}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      socket.emit('task-updated', {
-        action: `Smart assigned task`,
-        userId: JSON.parse(localStorage.getItem('user')).id,
-      });
       fetchTasks();
+      fetchLogs();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const updateTaskStatus = async (taskId, newStatus) => {
+    const task = tasks.find((t) => t._id === taskId);
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/tasks/${taskId}`,
+        { status: newStatus, version: task.version },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchTasks();
+      fetchLogs();
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setConflict({
+          clientTask: { ...task, status: newStatus },
+          serverTask: err.response.data.currentTask,
+          taskId,
+        });
+      } else {
+        console.error(err);
+      }
     }
   };
 
@@ -105,16 +108,14 @@ const KanbanBoard = () => {
           { status: conflict.clientTask.status, version: conflict.serverTask.version },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        socket.emit('task-updated', {
-          action: `Forced overwrite task`,
-          userId: JSON.parse(localStorage.getItem('user')).id,
-        });
         fetchTasks();
+        fetchLogs();
       } catch (err) {
         console.error(err);
       }
     } else {
       fetchTasks();
+      fetchLogs();
     }
     setConflict(null);
   };
@@ -136,6 +137,7 @@ const KanbanBoard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         fetchTasks();
+        fetchLogs();
       } catch (err) {
         console.error(err);
       }
@@ -161,25 +163,27 @@ const KanbanBoard = () => {
               <h3>{status}</h3>
               <span className="task-count">{tasks.filter((task) => task.status === status).length}</span>
             </div>
-            {tasks
-              .filter((task) => task.status === status)
-              .map((task) => (
-                <div
-                  key={task._id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, task._id)}
-                  className="task-card"
-                >
-                  <h4>{task.title}</h4>
-                  <p>{task.description}</p>
-                  <span className="status-badge">{task.status}</span>
-                  <div className="task-actions">
-                    <button onClick={() => handleSmartAssign(task._id)}>Smart Assign</button>
-                    <button onClick={() => handleEditTask(task)}>Edit</button>
-                    <button onClick={() => handleDeleteTask(task._id)}>Delete</button>
+            <div className="tasks-container">
+              {tasks
+                .filter((task) => task.status === status)
+                .map((task) => (
+                  <div
+                    key={task._id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, task._id)}
+                    className="task-card"
+                  >
+                    <h4>{task.title}</h4>
+                    <p>{task.description}</p>
+                    <span className="status-badge">{task.status}</span>
+                    <div className="task-actions">
+                      <button onClick={() => handleSmartAssign(task._id)}>Smart Assign</button>
+                      <button onClick={() => handleEditTask(task)}>Edit</button>
+                      <button onClick={() => handleDeleteTask(task._id)}>Delete</button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
         ))}
       </div>
@@ -187,9 +191,9 @@ const KanbanBoard = () => {
       <div className="activity-log-panel">
         <h3>Activity Logs (Last 20 Actions)</h3>
         <ul>
-          {tasks.slice(0, 20).map((log, idx) => (
+          {logs.slice(0, 20).map((log, idx) => (
             <li key={idx} className="log-item">
-              Task: {log.title} — Status: {log.status}
+              {log.user?.username || 'Unknown User'}: {log.action} at {new Date(log.timestamp).toLocaleString()}
             </li>
           ))}
         </ul>
@@ -210,6 +214,7 @@ const KanbanBoard = () => {
           onClose={() => setShowModal(false)}
           onSave={() => {
             fetchTasks();
+            fetchLogs();
             setShowModal(false);
           }}
         />

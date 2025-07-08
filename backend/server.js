@@ -1,10 +1,8 @@
 const express = require('express');
 const http = require('http');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
-const taskRoutes = require('./routes/taskRoutes');
 const ActionLog = require('./models/ActionLog');
 const actionRoutes = require('./routes/actionRoutes');
 require('dotenv').config();
@@ -12,6 +10,8 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, { cors: { origin: '*' } });
+app.set('io', io);
+
 
 connectDB();
 
@@ -20,7 +20,11 @@ app.use(express.json());
 
 app.use('/actions', actionRoutes);
 app.use('/auth', authRoutes);
+
+const taskRoutes = require('./routes/taskRoutes')(io);
 app.use('/tasks', taskRoutes);
+
+
 
 io.on('connection', (socket) => {
   console.log('Client Connected');
