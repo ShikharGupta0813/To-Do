@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './login.css';  // Reusing the same CSS file for consistent design
+import './login.css';  
+import Img from "./img.png";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const Register = () => {
         <div className="login-left">
           <h2>Join Us Today!</h2>
           <p>Create your account and start managing your projects easily.</p>
-          <img src="/b2b.png" alt="Kanban Illustration" />
+          <img src={Img} alt="Kanban Illustration" />
         </div>
 
         {/* Right Section (Register Form) */}

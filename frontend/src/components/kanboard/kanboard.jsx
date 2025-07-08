@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import socket from '../../sockets/socket';
-import ConflictModal from './conflictModal';
-import TaskFormModal from './TaskFormModal';
-import './kanbanboard.css';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import socket from "../../sockets/socket";
+import ConflictModal from "./conflictModal";
+import TaskFormModal from "./TaskFormModal";
+import "./kanbanboard.css";
+import { toast } from "react-toastify";
 
 const KanbanBoard = () => {
   const [tasks, setTasks] = useState([]);
@@ -12,7 +13,7 @@ const KanbanBoard = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [logs, setLogs] = useState([]);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   const fetchTasks = async () => {
     try {
@@ -41,20 +42,24 @@ const KanbanBoard = () => {
     fetchLogs();
 
     // Listen to real-time logs
-    socket.on('update-logs', (latestLogs) => {
+    socket.on("update-logs", (latestLogs) => {
       setLogs(latestLogs);
     });
 
     return () => {
-      socket.off('update-logs');
+      socket.off("update-logs");
     };
   }, []);
 
   const handleSmartAssign = async (taskId) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/tasks/smart-assign/${taskId}`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/tasks/smart-assign/${taskId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       fetchTasks();
       fetchLogs();
     } catch (err) {
@@ -63,49 +68,50 @@ const KanbanBoard = () => {
   };
 
   const updateTaskStatus = async (taskId, newStatus) => {
-    const task = tasks.find((t) => t._id === taskId);
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/tasks/${taskId}`,
-        { status: newStatus, version: task.version },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchTasks();
-      fetchLogs();
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setConflict({
-          clientTask: { ...task, status: newStatus },
-          serverTask: err.response.data.currentTask,
-          taskId,
-        });
-      } else {
-        console.error(err);
-      }
+  const task = tasks.find((t) => t._id === taskId);
+  try {
+    await axios.put(
+      `${import.meta.env.VITE_API_URL}/tasks/${taskId}`,
+      { status: newStatus, version: task.version },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    fetchTasks();
+    fetchLogs();
+  } catch (err) {
+    if (err.response?.status === 409) {
+      setConflict({
+        clientTask: { ...task, status: newStatus },
+        serverTask: err.response.data.currentTask,
+        taskId,
+      });
+    } else {
+      console.error(err);
     }
-  };
+  }
+};
 
   const handleDragStart = (e, taskId) => {
-    e.dataTransfer.setData('taskId', taskId);
+    e.dataTransfer.setData("taskId", taskId);
   };
 
   const handleDragOver = (e, status) => {
     e.preventDefault();
     setDragOverStatus(status);
   };
-
-  const handleDrop = (e, status) => {
-    const taskId = e.dataTransfer.getData('taskId');
-    updateTaskStatus(taskId, status);
-    setDragOverStatus(null);
-  };
-
+const handleDrop = (e, status) => {
+  const taskId = e.dataTransfer.getData("taskId");
+  updateTaskStatus(taskId, status);
+  setDragOverStatus(null);
+};
   const handleResolveConflict = async (action) => {
-    if (action === 'overwrite') {
+    if (action === "overwrite") {
       try {
         await axios.put(
           `${import.meta.env.VITE_API_URL}/tasks/${conflict.taskId}`,
-          { status: conflict.clientTask.status, version: conflict.serverTask.version },
+          {
+            status: conflict.clientTask.status,
+            version: conflict.serverTask.version,
+          },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         fetchTasks();
@@ -131,25 +137,39 @@ const KanbanBoard = () => {
   };
 
   const handleDeleteTask = async (taskId) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
+    if (window.confirm("Are you sure you want to delete this task?")) {
       try {
         await axios.delete(`${import.meta.env.VITE_API_URL}/tasks/${taskId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         fetchTasks();
         fetchLogs();
+        toast.success("Task deleted sucessfully");
       } catch (err) {
         console.error(err);
+        toast.error("Task is not deleted");
       }
     }
   };
 
-  const statuses = ['Todo', 'In Progress', 'Done'];
+  const statuses = ["Todo", "In Progress", "Done"];
 
   return (
     <div className="kanban-page">
+      <button
+        className="logout-btn"
+        onClick={() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          window.location.href = "/";
+        }}
+      >
+        Logout
+      </button>
       <h1 className="kanban-title">Kanban Board</h1>
-      <button className="add-task-btn" onClick={handleAddTask}>+ Add Task</button>
+      <button className="add-task-btn" onClick={handleAddTask}>
+        + Add Task
+      </button>
 
       <div className="kanban-board">
         {statuses.map((status) => (
@@ -157,11 +177,15 @@ const KanbanBoard = () => {
             key={status}
             onDragOver={(e) => handleDragOver(e, status)}
             onDrop={(e) => handleDrop(e, status)}
-            className={`kanban-column ${dragOverStatus === status ? 'drag-over' : ''}`}
+            className={`kanban-column ${
+              dragOverStatus === status ? "drag-over" : ""
+            }`}
           >
             <div className="column-header">
               <h3>{status}</h3>
-              <span className="task-count">{tasks.filter((task) => task.status === status).length}</span>
+              <span className="task-count">
+                {tasks.filter((task) => task.status === status).length}
+              </span>
             </div>
             <div className="tasks-container">
               {tasks
@@ -175,11 +199,17 @@ const KanbanBoard = () => {
                   >
                     <h4>{task.title}</h4>
                     <p>{task.description}</p>
-                    <span className="status-badge">{task.status}</span>
+                    <section className="status-badge">{task.status}</section>
+                    <div className="status-badge">Priority: {task.priority}</div>
+
                     <div className="task-actions">
-                      <button onClick={() => handleSmartAssign(task._id)}>Smart Assign</button>
+                      <button onClick={() => handleSmartAssign(task._id)}>
+                        Smart Assign
+                      </button>
                       <button onClick={() => handleEditTask(task)}>Edit</button>
-                      <button onClick={() => handleDeleteTask(task._id)}>Delete</button>
+                      <button onClick={() => handleDeleteTask(task._id)}>
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -193,7 +223,8 @@ const KanbanBoard = () => {
         <ul>
           {logs.slice(0, 20).map((log, idx) => (
             <li key={idx} className="log-item">
-              {log.user?.username || 'Unknown User'}: {log.action} at {new Date(log.timestamp).toLocaleString()}
+              {log.user?.username || "Unknown User"}: {log.action} at{" "}
+              {new Date(log.timestamp).toLocaleString()}
             </li>
           ))}
         </ul>
@@ -203,8 +234,8 @@ const KanbanBoard = () => {
         show={!!conflict}
         clientTask={conflict?.clientTask}
         serverTask={conflict?.serverTask}
-        onMerge={() => handleResolveConflict('merge')}
-        onOverwrite={() => handleResolveConflict('overwrite')}
+        onMerge={() => handleResolveConflict("merge")}
+        onOverwrite={() => handleResolveConflict("overwrite")}
         onClose={() => setConflict(null)}
       />
 

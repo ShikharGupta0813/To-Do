@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './login.css';  // Import CSS file
+import './login.css';  
+import Img from "./img.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const Login = () => {
         <div className="login-left">
           <h2>Welcome Back!</h2>
           <p>Access your tasks, manage projects, and stay organized.</p>
-          <img src="/b2b.png" alt="Kanban Illustration" />
+          <img src={Img} alt="Kanban Illustration" />
         </div>
 
         {/* Right Section (Form) */}

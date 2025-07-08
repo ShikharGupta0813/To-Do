@@ -1,11 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './components/auth/login';
 import Register from './components/auth/register';
-import Homepage from './components/homepage/pag'
+import Homepage from './components/landingpage/page'
 import KanbanBoard from './components/kanboard/kanboard';
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function App() {
-  return (
+  return (<>
     <Router>
       <Routes>
       <Route path="/" element={<Homepage/>} />
@@ -14,6 +15,8 @@ function App() {
         <Route path="/register" element={<Register />} />
       </Routes>
     </Router>
+     <ToastContainer position="top-center" autoClose={3000} />
+     </>
   );
 }
 
