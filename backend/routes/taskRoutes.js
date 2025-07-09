@@ -25,7 +25,7 @@ module.exports = (io) => {
   }
 });
 
-  // ✅ POST: Create a new task
+  //  Create a new task
   router.post("/", async (req, res) => {
     try {
       const forbiddenTitles = ["Todo", "In Progress", "Done"];
@@ -63,24 +63,24 @@ module.exports = (io) => {
     }
   });
 
-  // ✅ PUT: Update a task
+  
   router.put("/:id", async (req, res) => {
     try {
-      const task = await Task.findById(req.params.id); // ✅ Fetch task first
+      const task = await Task.findById(req.params.id); 
       if (!task) return res.status(404).json({ message: "Task not found" });
       
 
       const forbiddenTitles = ["Todo", "In Progress", "Done"];
       const { title } = req.body;
 
-      // ✅ Forbidden titles validation
+      
       if (title && forbiddenTitles.includes(title)) {
         return res
           .status(400)
           .json({ message: "Task title cannot be same as column names" });
       }
 
-      // ✅ Check duplicate titles (excluding current task)
+      //  Check duplicate titles 
       if (title) {
         const existingTask = await Task.findOne({
           title,
@@ -98,7 +98,7 @@ module.exports = (io) => {
           .json({ message: "Conflict detected", currentTask: task });
       }
 
-      // ✅ Now Compare Changes
+      //  Now Compare Changes
       const isStatusChange = req.body.status && req.body.status !== task.status;
       const isTitleChange = req.body.title && req.body.title !== task.title;
       const isDescriptionChange =
@@ -125,14 +125,14 @@ module.exports = (io) => {
         actionMessage += `Edited Task : Changed Priority of "${task.title}" to "${req.body.priority}" `;
       }
 
-      // ✅ Update Task in DB
+      //  Update Task in DB
       const updatedTask = await Task.findByIdAndUpdate(
         req.params.id,
          { ...req.body, version: task.version + 1 },
         { new: true }
       );
 
-      // ✅ Log the Action (only if changes detected)
+      //  Log the Action (only if changes detected)
       if (actionMessage.trim() !== "") {
         await ActionLog.create({
           user: req.user.id,
@@ -141,7 +141,7 @@ module.exports = (io) => {
         });
       }
 
-      // ✅ Emit Updated Logs via Socket
+      //  Emit Updated Logs via Socket
       const latestLogs = await ActionLog.find()
         .sort({ timestamp: -1 })
         .limit(20)
@@ -154,8 +154,8 @@ module.exports = (io) => {
     }
   });
 
-  // ✅ DELETE: Delete a task
-  router.delete("/:id", async (req, res) => {
+  //  Delete a task
+  routr.delete("/:id", async (req, res) => {
     try {
       const task = await Task.findById(req.params.id);
       await Task.findByIdAndDelete(req.params.id);
@@ -178,7 +178,7 @@ module.exports = (io) => {
     }
   });
 
-  // ✅ POST: Smart Assign — Assign task to user with fewest active tasks
+  //  Assign task to user with fewest active tasks
   router.post("/smart-assign/:taskId", async (req, res) => {
     try {
       const users = await User.find({});

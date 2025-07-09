@@ -20,7 +20,7 @@ const TaskFormModal = ({ task, onClose, onSave, setConflict }) => {
             title,
             description,
             priority,
-            version: task.version, // ✅ Send version for conflict detection
+            version: task.version,
           },
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -41,7 +41,7 @@ const TaskFormModal = ({ task, onClose, onSave, setConflict }) => {
     } catch (err) {
       if (err.response?.status === 409) {
         toast.error("Conflict detected while editing task");
-        onClose(); // ✅ Close modal
+        onClose();
         setConflict({
           clientTask: { title, description, priority, status: task.status },
           serverTask: err.response.data.currentTask,

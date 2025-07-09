@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import socket from "../../sockets/socket";
-import "../kanboard/kanbanboard.css"; // Reuse KanbanBoard.css for consistent styling
+import "../kanboard/kanbanboard.css"; 
 
 const ActivityLogPanel = () => {
   const [logs, setLogs] = useState([]);

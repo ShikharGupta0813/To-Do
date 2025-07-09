@@ -7,7 +7,7 @@ const { protect } = require('../middleware/authMiddleware');
 router.use(protect);
 
 
-// ✅ GET: Fetch last 20 action logs
+//  Fetch last 20 action logs
 router.get('/', async (req, res) => {
   try {
     const logs = await ActionLog.find()

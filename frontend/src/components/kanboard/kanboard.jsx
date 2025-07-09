@@ -119,7 +119,7 @@ const KanbanBoard = () => {
           description: conflict.clientTask.description,
           priority: conflict.clientTask.priority,
           status: conflict.clientTask.status,
-          version: conflict.serverTask.version, // ✅ Use server version to overwrite
+          version: conflict.serverTask.version, 
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
