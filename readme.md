@@ -1,6 +1,6 @@
 # 📝 Kanban Task Management App
 
-A full-stack **Kanban Task Management Application** that helps users to manage their tasks visually. It includes **Smart Assignment** of tasks, **Drag-and-Drop** task handling, **Conflict Detection**, **Activity Logs**, and **Authentication**.
+A full-stack **Kanban Task Management Application** that helps users to manage their tasks visually. It includes **Smart Assignment** of tasks, **Drag-and-Drop** task handling, **Conflict Detection**,**Priority of Tasks**, **Activity Logs**, and **Authentication**.
 
 ---
 
@@ -10,9 +10,12 @@ This project is a feature-rich Kanban Board where users can:
 
 * **Create**, **Edit**, **Delete** tasks
 * Drag-and-drop tasks between columns (Todo, In Progress, Done)
+* Set Priority for tasks (High, Medium, Low)
 * Smartly assign tasks to the user with the **fewest active tasks**
-* Track all actions in an **Activity Log** (real-time via sockets)
-* Handle task **conflicts** (with Merge/Overwrite options)
+* Tasks inside each column are shown in **decreasing priority order** (High first)
+* Tasks have title validations — cannot match column names and must be unique
+* Track all actions in a **Live Activity Log** (real-time via sockets)
+* Handle task **conflicts** smartly (with options to Keep Server Version or Overwrite with My Changes) during **edits or drag-and-drop**
 
 ---
 
@@ -109,16 +112,18 @@ npm run dev
 
 ## ✅ Features List & Usage Guide:
 
-| Feature                | Description                                                           |
-| ---------------------- | --------------------------------------------------------------------- |
-| User Authentication    | Users can login/register                                              |
-| Create Task            | Add tasks with title, description, priority                           |
-| Edit/Delete Task       | Modify or remove existing tasks                                       |
-| Drag-and-Drop          | Move tasks across Todo, In Progress, Done                             |
-| Smart Assignment       | Automatically assigns task to user with least workload                |
-| Conflict Handling      | Detects concurrent edits & offers merge or overwrite options          |
-| Real-Time Activity Log | Logs actions such as task creation, deletion, updates (via socket.io) |
-| Priority Levels        | Assign and update task priority (Low, Medium, High)                   |
+| Feature                | Description                                                                 |
+| ---------------------- | --------------------------------------------------------------------------- |
+| User Authentication    | Users can login/register                                                    |
+| Create Task            | Add tasks with title, description, and priority                             |
+| Edit/Delete Task       | Modify or remove existing tasks                                             |
+| Drag-and-Drop          | Move tasks across Todo, In Progress, and Done columns                       |
+| Smart Assignment       | Automatically assigns task to the user with the fewest active tasks         |
+| Conflict Handling      | Detects concurrent edits & offers merge or overwrite options                |
+| Real-Time Activity Log | Logs actions such as task creation, deletion, status change, and edits (via socket.io) |
+| Priority Levels        | Assign and update task priority (Low, Medium, High)                         |
+| Priority Ordering      | Tasks in each column are automatically sorted by priority (High to Low)     |
+| Task Title Validation  | Prevents duplicate task titles and disallows titles same as column names     |
 
 ---
 
@@ -157,7 +162,7 @@ if (req.body.version !== undefined && task.version !== req.body.version) {
 
 ## 🔗 Live Demo & Video
 
-* **🔴 Live App:** 
+* **🔴 Live App:** https://to-do-mindvistas-projects.vercel.app/
 * **🎥 Demo Video:** [Demo Video Link Here](https://your-demo-video-link)
 
 ---
