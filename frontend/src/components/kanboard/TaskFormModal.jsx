@@ -4,14 +4,14 @@ import { toast } from "react-toastify";
 
 import "./kanbanboard.css";
 
-const TaskFormModal = ({ task, onClose, onSave }) => {
+const TaskFormModal = ({ task, onClose, onSave, setConflict }) => {
   const [title, setTitle] = useState(task ? task.title : "");
   const [description, setDescription] = useState(task ? task.description : "");
-  const [priority, setPriority] = useState(task ? task.priority : "Medium"); 
+  const [priority, setPriority] = useState(task ? task.priority : "Medium");
   const token = localStorage.getItem("token");
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     try {
       if (task) {
         await axios.put(
@@ -20,6 +20,7 @@ const TaskFormModal = ({ task, onClose, onSave }) => {
             title,
             description,
             priority,
+            version: task.version, // ✅ Send version for conflict detection
           },
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -29,21 +30,27 @@ const TaskFormModal = ({ task, onClose, onSave }) => {
       } else {
         await axios.post(
           `${import.meta.env.VITE_API_URL}/tasks`,
-          {
-            title,
-            description,
-            priority,
-          },
+          { title, description, priority },
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
         toast.success("Task created successfully");
       }
-      onSave(); // ✅ Refresh Kanban
+      onSave();
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to save task");
+      if (err.response?.status === 409) {
+        toast.error("Conflict detected while editing task");
+        onClose(); // ✅ Close modal
+        setConflict({
+          clientTask: { title, description, priority, status: task.status },
+          serverTask: err.response.data.currentTask,
+          taskId: task._id,
+        });
+      } else {
+        console.error(err);
+        toast.error(err.response?.data?.message || "Failed to save task");
+      }
     }
   };
 

@@ -68,27 +68,33 @@ const KanbanBoard = () => {
   };
 
   const updateTaskStatus = async (taskId, newStatus) => {
-  const task = tasks.find((t) => t._id === taskId);
-  try {
-    await axios.put(
-      `${import.meta.env.VITE_API_URL}/tasks/${taskId}`,
-      { status: newStatus, version: task.version },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    fetchTasks();
-    fetchLogs();
-  } catch (err) {
-    if (err.response?.status === 409) {
-      setConflict({
-        clientTask: { ...task, status: newStatus },
-        serverTask: err.response.data.currentTask,
-        taskId,
-      });
-    } else {
-      console.error(err);
+    const task = tasks.find((t) => t._id === taskId);
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/tasks/${taskId}`,
+        {
+          title: task.title,
+          priority: task.priority,
+          description: task.description, 
+          status: newStatus,
+          version: task.version,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchTasks();
+      fetchLogs();
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setConflict({
+          clientTask: { ...task, status: newStatus },
+          serverTask: err.response.data.currentTask,
+          taskId,
+        });
+      } else {
+        console.error(err);
+      }
     }
-  }
-};
+  };
 
   const handleDragStart = (e, taskId) => {
     e.dataTransfer.setData("taskId", taskId);
@@ -98,33 +104,40 @@ const KanbanBoard = () => {
     e.preventDefault();
     setDragOverStatus(status);
   };
-const handleDrop = (e, status) => {
-  const taskId = e.dataTransfer.getData("taskId");
-  updateTaskStatus(taskId, status);
-  setDragOverStatus(null);
-};
+  const handleDrop = (e, status) => {
+    const taskId = e.dataTransfer.getData("taskId");
+    updateTaskStatus(taskId, status);
+    setDragOverStatus(null);
+  };
   const handleResolveConflict = async (action) => {
-    if (action === "overwrite") {
-      try {
-        await axios.put(
-          `${import.meta.env.VITE_API_URL}/tasks/${conflict.taskId}`,
-          {
-            status: conflict.clientTask.status,
-            version: conflict.serverTask.version,
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        fetchTasks();
-        fetchLogs();
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
+  if (action === "overwrite") {
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/tasks/${conflict.taskId}`,
+        {
+          title: conflict.clientTask.title,
+          description: conflict.clientTask.description,
+          priority: conflict.clientTask.priority,
+          status: conflict.clientTask.status,
+          version: conflict.serverTask.version, // ✅ Use server version to overwrite
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       fetchTasks();
       fetchLogs();
+      toast.success("Task overwritten successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to overwrite task");
     }
-    setConflict(null);
-  };
+  } else {
+    fetchTasks();
+    fetchLogs();
+    toast.info("Kept server version");
+  }
+  setConflict(null);
+  setEditingTask(null);
+};
 
   const handleAddTask = () => {
     setEditingTask(null);
@@ -200,7 +213,9 @@ const handleDrop = (e, status) => {
                     <h4>{task.title}</h4>
                     <p>{task.description}</p>
                     <section className="status-badge">{task.status}</section>
-                    <section className="priority-badge">Priority: {task.priority}</section>
+                    <section className="priority-badge">
+                      Priority: {task.priority}
+                    </section>
 
                     <div className="task-actions">
                       <button onClick={() => handleSmartAssign(task._id)}>
@@ -239,7 +254,7 @@ const handleDrop = (e, status) => {
         onClose={() => setConflict(null)}
       />
 
-      {showModal && (
+      {showModal && !conflict && (
         <TaskFormModal
           task={editingTask}
           onClose={() => setShowModal(false)}
@@ -248,6 +263,7 @@ const handleDrop = (e, status) => {
             fetchLogs();
             setShowModal(false);
           }}
+          setConflict={setConflict} 
         />
       )}
     </div>
