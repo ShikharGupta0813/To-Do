@@ -68,6 +68,7 @@ module.exports = (io) => {
     try {
       const task = await Task.findById(req.params.id); // ✅ Fetch task first
       if (!task) return res.status(404).json({ message: "Task not found" });
+      
 
       const forbiddenTitles = ["Todo", "In Progress", "Done"];
       const { title } = req.body;
@@ -127,7 +128,7 @@ module.exports = (io) => {
       // ✅ Update Task in DB
       const updatedTask = await Task.findByIdAndUpdate(
         req.params.id,
-        req.body,
+         { ...req.body, version: task.version + 1 },
         { new: true }
       );
 

@@ -6,6 +6,7 @@ const TaskSchema = new mongoose.Schema({
   assignedUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   status: { type: String, enum: ['Todo', 'In Progress', 'Done'], default: 'Todo' },
   priority: { type: String, enum: ['Low', 'Medium', 'High'], default: 'Medium' },
+  version: { type: Number, default: 1 },  // ✅ Added version field
   updatedAt: { type: Date, default: Date.now }
 });
 
