@@ -162,8 +162,8 @@ if (req.body.version !== undefined && task.version !== req.body.version) {
 
 ## 🔗 Live Demo & Video
 
-* **🔴 Live App:** https://to-do-mindvistas-projects.vercel.app/
-* **🎥 Demo Video:** [Demo Video Link Here](https://your-demo-video-link)
+* **🔴 Live App:** [Live App Link Here](https://to-do-mindvistas-projects.vercel.app)
+* **🎥 Demo Video:** [Demo Video Link Here](https://www.loom.com/share/5deb2f159e034ce99633cc818aa1889d?sid=d3bd3f72-232f-40cf-828a-07c56a685aa4)
 
 ---
 
